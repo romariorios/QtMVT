@@ -26,7 +26,7 @@ int main(int argc, char **argv)
         {{{Qt::DisplayRole, [](const QString &s) { return "Profession: " + s; }}}}
     };
 
-    Model::List<Person, QString> otherPersonList {
+    Model::List<Person, QString> editablePersonList {
         {make_tuple(Person{"Romário", 24}, "Programador")},
         {
             {
@@ -44,12 +44,73 @@ int main(int argc, char **argv)
         }
     };
 
+    Model::List<QString, QString> insertablePersonList {
+        {},
+        {
+            {
+                {Qt::DisplayRole, [](const QString &s) { return "Name: " + s; }}
+            },
+            {
+                {Qt::EditRole, [](QString &s, const QVariant &v) { s = v.toString(); return true; }}
+            }
+        },
+        {
+            {
+                {Qt::DisplayRole, [](const QString &s) { return "Profession: " + s; }}
+            },
+            {
+                {Qt::EditRole, [](QString &s, const QVariant &v) { s = v.toString(); return true; }}
+            }
+        }
+    };
+
+    Model::List<Person> removablePersonList {
+        {
+            make_tuple(Person{"Romário", 24}),
+            make_tuple(Person{"Maria", 19}),
+            make_tuple(Person{"Isabela", 33}),
+            make_tuple(Person{"Antônio", 40}),
+            make_tuple(Person{"Alícia", 50}),
+            make_tuple(Person{"João", 26}),
+            make_tuple(Person{"Ana", 45}),
+            make_tuple(Person{"Francisca", 75}),
+            make_tuple(Person{"Natanael", 30})
+        },
+        {
+            {
+                {Qt::DisplayRole, [](const Person &p)
+                {
+                    return p.name + " (" + QString::number(p.age) + ")";
+                }}
+            }
+        }
+    };
+
     Ui::ModelListExamples ui;
     QWidget w;
     ui.setupUi(&w);
 
     ui.nonEditable->setModel(&personList);
-    ui.editable->setModel(&otherPersonList);
+    ui.editable->setModel(&editablePersonList);
+    ui.insertable->setModel(&insertablePersonList);
+    ui.removable->setModel(&removablePersonList);
+
+    QObject::connect(ui.insertableInsert, &QPushButton::clicked, [&ui, &insertablePersonList]()
+    {
+        int row = insertablePersonList.rowCount();
+        insertablePersonList.insertRow(row);
+
+        auto personIndex = insertablePersonList.index(row, 0);
+        insertablePersonList.setData(personIndex, ui.insertableName->text());
+
+        auto professionIndex = insertablePersonList.index(row, 1);
+        insertablePersonList.setData(professionIndex, ui.insertableProfession->text());
+    });
+
+    QObject::connect(ui.removableRemove, &QPushButton::clicked, [&removablePersonList]()
+    {
+        removablePersonList.removeRow(0);
+    });
 
     w.show();
 

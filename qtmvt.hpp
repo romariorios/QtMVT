@@ -35,7 +35,7 @@
 #include <array>
 #include <initializer_list>
 #include <functional>
-#include <unordered_map>
+#include <map>
 #include <utility>
 #include <tuple>
 
@@ -58,15 +58,15 @@ namespace QtMVT
         struct RoleFunctions
         {
             RoleFunctions(
-                std::unordered_map<int, std::function<QVariant(const RoleType &)>> &&roles = {},
-                std::unordered_map<int, std::function<bool(RoleType &, const QVariant &)>> &&editRoles = {})
+                std::map<int, std::function<QVariant(const RoleType &)>> &&roles = {},
+                std::map<int, std::function<bool(RoleType &, const QVariant &)>> &&editRoles = {})
             :
                 roles{roles},
                 editRoles{editRoles}
             {}
 
-            std::unordered_map<int, std::function<QVariant(const RoleType &)>> roles {};
-            std::unordered_map<int, std::function<bool(RoleType &, const QVariant &)>> editRoles {};
+            std::map<int, std::function<QVariant(const RoleType &)>> roles;
+            std::map<int, std::function<bool(RoleType &, const QVariant &)>> editRoles;
         };
 
         static const constexpr int rowSize = std::tuple_size<_RowType>::value;
@@ -80,6 +80,12 @@ namespace QtMVT
             QAbstractTableModel{parent},
             _rows{l},
             _roleFunctions{tRoles, otherRoles...}
+        {}
+
+        List(const List<T, Types...> &other) :
+            QAbstractTableModel{other.parent()},
+            _rows{other._rows},
+            _roleFunctions{other._roleFunctions}
         {}
 
         int rowCount(const QModelIndex & = {}) const
@@ -115,6 +121,46 @@ namespace QtMVT
                 return {};
 
             return ListTemplateFunctions<rowSize - 1, T, Types...>{}.setInIndex(*this, index, value, role);
+        }
+
+        bool insertRows(int row, int count, const QModelIndex &parent = {})
+        {
+            if (count == 0)
+                return true;
+
+            if (row < 0 ||
+                row > _rows.size())
+                return false;
+
+            beginInsertRows(parent, row, row + count - 1);
+
+            auto rowIt = _rows.begin() + row;
+            for (int i = 0; i < count; ++i)
+                _rows.emplace(rowIt);
+
+            endInsertRows();
+
+            return true;
+        }
+
+        bool removeRows(int row, int count, const QModelIndex &parent = {})
+        {
+            if (count == 0)
+                return true;
+
+            if (row < 0 ||
+                row + count > _rows.size())
+                return false;
+
+            beginRemoveRows(parent, row, row + count - 1);
+
+            auto rowIt = _rows.begin() + row;
+            for (int i = 0; i < count; ++i)
+                _rows.erase(rowIt);
+
+            endRemoveRows();
+
+            return true;
         }
 
     private:
@@ -168,7 +214,7 @@ namespace QtMVT
             auto curRoles = std::get<I>(list._roleFunctions).editRoles;
             auto roleFunction = curRoles.find(role);
             if (roleFunction == curRoles.end())
-                return {};
+                return false;
 
             return roleFunction->second(std::get<I>(list._rows[i.row()]), data);
         }

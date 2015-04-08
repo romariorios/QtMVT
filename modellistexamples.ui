@@ -39,6 +39,50 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Insertable</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QTableView" name="insertable"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLineEdit" name="insertableName"/>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="insertableProfession"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="insertableInsert">
+           <property name="text">
+            <string>Insert</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_4">
+      <attribute name="title">
+       <string>Removable</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QTableView" name="removable"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="removableRemove">
+         <property name="text">
+          <string>Remove first</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
