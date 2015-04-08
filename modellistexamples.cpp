@@ -20,10 +20,20 @@ int main(int argc, char **argv)
 {
     QApplication a { argc, argv };
 
+    Model::List<const char *, int, const char *> simpleList {
+        {
+            make_tuple("Romário", 24, "Programador"),
+            make_tuple("Mike", 30, "Plumber"),
+            make_tuple("Ellie", 16, "Student"),
+            make_tuple("Jesus", 33, "Carpenter")
+        }
+    };
+
     Model::List<Person, QString> personList {
         {make_tuple(Person{"Romário", 24}, "Programador")},
-        {{{Qt::DisplayRole, [](const Person &p) { return p.name + " (" + QString::number(p.age) + ")"; }}}},
-        {{{Qt::DisplayRole, [](const QString &s) { return "Profession: " + s; }}}}
+
+        [](const Person &p) { return p.name + " (" + QString::number(p.age) + ")"; },
+        [](const QString &s) { return "Profession: " + s; }
     };
 
     Model::List<Person, QString> editablePersonList {
@@ -46,22 +56,11 @@ int main(int argc, char **argv)
 
     Model::List<QString, QString> insertablePersonList {
         {},
-        {
-            {
-                {Qt::DisplayRole, [](const QString &s) { return "Name: " + s; }}
-            },
-            {
-                {Qt::EditRole, [](QString &s, const QVariant &v) { s = v.toString(); return true; }}
-            }
-        },
-        {
-            {
-                {Qt::DisplayRole, [](const QString &s) { return "Profession: " + s; }}
-            },
-            {
-                {Qt::EditRole, [](QString &s, const QVariant &v) { s = v.toString(); return true; }}
-            }
-        }
+        [](const QString &s) { return "Name: " + s; },
+        [](QString &s, const QVariant &v) { s = v.toString(); return true; },
+
+        [](const QString &s) { return "Profession: " + s; },
+        [](QString &s, const QVariant &v) { s = v.toString(); return true; }
     };
 
     Model::List<Person> removablePersonList {
@@ -76,13 +75,10 @@ int main(int argc, char **argv)
             make_tuple(Person{"Francisca", 75}),
             make_tuple(Person{"Natanael", 30})
         },
+
+        [](const Person &p)
         {
-            {
-                {Qt::DisplayRole, [](const Person &p)
-                {
-                    return p.name + " (" + QString::number(p.age) + ")";
-                }}
-            }
+            return p.name + " (" + QString::number(p.age) + ")";
         }
     };
 
@@ -90,6 +86,7 @@ int main(int argc, char **argv)
     QWidget w;
     ui.setupUi(&w);
 
+    ui.simple->setModel(&simpleList);
     ui.nonEditable->setModel(&personList);
     ui.editable->setModel(&editablePersonList);
     ui.insertable->setModel(&insertablePersonList);

@@ -58,7 +58,9 @@ namespace QtMVT
         struct RoleFunctions
         {
             RoleFunctions(
-                std::map<int, std::function<QVariant(const RoleType &)>> &&roles = {},
+                std::map<int, std::function<QVariant(const RoleType &)>> &&roles = {
+                    {Qt::DisplayRole, [](const RoleType &t) { return t; }}
+                },
                 std::map<int, std::function<bool(RoleType &, const QVariant &)>> &&editRoles = {})
             :
                 roles{roles},
@@ -72,7 +74,7 @@ namespace QtMVT
         static const constexpr int rowSize = std::tuple_size<_RowType>::value;
 
         List(
-            std::initializer_list<std::tuple<T, Types...>> l,
+            std::initializer_list<std::tuple<T, Types...>> &&l,
             RoleFunctions<T> &&tRoles,
             RoleFunctions<Types> &&... otherRoles,
             QObject *parent = nullptr)
@@ -82,8 +84,52 @@ namespace QtMVT
             _roleFunctions{tRoles, otherRoles...}
         {}
 
-        List(const List<T, Types...> &other) :
-            QAbstractTableModel{other.parent()},
+        List(
+            std::initializer_list<std::tuple<T, Types...>> &&l,
+            std::function<QVariant(const T &)> &&tDisplayFunction,
+            std::function<bool(T &, const QVariant &)> &&tEditFunction,
+            std::function<QVariant(const Types &)> &&... otherDisplayFunctions,
+            std::function<bool(Types &, const QVariant &)> &&... otherEditFunctions,
+            QObject *parent = nullptr)
+        :
+            List{
+                std::move(l),
+                {
+                    {{Qt::DisplayRole, tDisplayFunction}},
+                    {{Qt::EditRole, tEditFunction}}
+                },
+                {
+                    {{Qt::DisplayRole, otherDisplayFunctions}},
+                    {{Qt::EditRole, otherEditFunctions}}
+                }...,
+                parent}
+        {}
+
+        List(
+            std::initializer_list<std::tuple<T, Types...>> &&l,
+            std::function<QVariant(const T &)> &&tDisplayFunction,
+            std::function<QVariant(const Types &)> &&... otherDisplayFunctions,
+            QObject *parent = nullptr)
+        :
+            List{
+                std::move(l),
+                {
+                    {{Qt::DisplayRole, tDisplayFunction}},
+                    {}
+                },
+                {
+                    {{Qt::DisplayRole, otherDisplayFunctions}},
+                    {}
+                }...,
+                parent}
+        {}
+
+        List(std::initializer_list<std::tuple<T, Types...>> &&l, QObject *parent = nullptr) :
+            List{std::move(l), RoleFunctions<T>{}, RoleFunctions<Types>{}..., parent}
+        {}
+
+        List(const List<T, Types...> &other, QObject *parent = nullptr) :
+            QAbstractTableModel{parent},
             _rows{other._rows},
             _roleFunctions{other._roleFunctions}
         {}
