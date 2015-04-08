@@ -5,6 +5,8 @@
 #include <QVBoxLayout>
 #include <QApplication>
 
+#include "ui_modellistexamples.h"
+
 using namespace QtMVT;
 using namespace std;
 
@@ -36,20 +38,20 @@ int main(int argc, char **argv)
             }
         },
         {
-
             {
                 {Qt::DisplayRole, [](const QString &s) { return "Profession: " + s; }}
             }
         }
     };
 
-    QTableView tv1;
-    tv1.setModel(&personList);
-    tv1.show();
+    Ui::ModelListExamples ui;
+    QWidget w;
+    ui.setupUi(&w);
 
-    QTableView tv2;
-    tv2.setModel(&otherPersonList);
-    tv2.show();
+    ui.nonEditable->setModel(&personList);
+    ui.editable->setModel(&otherPersonList);
+
+    w.show();
 
     a.exec();
 }

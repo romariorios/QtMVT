@@ -7,11 +7,14 @@
 QT       += core gui widgets
 CONFIG   += c++11
 
-TARGET = test1
+TARGET = modellistexamples
 TEMPLATE = app
 
 SOURCES += \
-    test1.cpp
+    modellistexamples.cpp
 
 HEADERS += \
     qtmvt.hpp
+
+FORMS += \
+    modellistexamples.ui
