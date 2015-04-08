@@ -38,14 +38,34 @@
 #include <map>
 #include <utility>
 #include <tuple>
+#include <type_traits>
 
 namespace QtMVT
 {
     namespace Model
     {
 
+    template <typename T, typename... Types>
+    class TypesAreDefaultConstructible
+    {
+    public:
+        static const bool value =
+            std::is_default_constructible<T>::value &&
+            TypesAreDefaultConstructible<Types...>::value;
+    };
+
+    template <typename T>
+    class TypesAreDefaultConstructible<T>
+    {
+    public:
+        static const bool value = std::is_default_constructible<T>::value;
+    };
+
     template <int I, typename... Types>
     class ListTemplateFunctions;
+
+    template <bool B, typename... Types>
+    class InsertRows;
 
     // A list with a fixed size of columns
     template <typename T, typename... Types>
@@ -149,14 +169,14 @@ namespace QtMVT
             if (_indexIsInvalid(index))
                 return {};
 
-            return ListTemplateFunctions<rowSize - 1, T, Types...>{}.getFromIndex(*this, index, role);
+            return ListTemplateFunctions<rowSize - 1, T, Types...>::getFromIndex(*this, index, role);
         }
 
         Qt::ItemFlags flags(const QModelIndex &index) const
         {
             return
                 QAbstractTableModel::flags(index) |
-                (ListTemplateFunctions<rowSize - 1, T, Types...>{}.columnIsEditable(*this, index.column())?
+                (ListTemplateFunctions<rowSize - 1, T, Types...>::columnIsEditable(*this, index.column())?
                      Qt::ItemIsEditable :
                      Qt::NoItemFlags);
         }
@@ -166,27 +186,15 @@ namespace QtMVT
             if (_indexIsInvalid(index))
                 return {};
 
-            return ListTemplateFunctions<rowSize - 1, T, Types...>{}.setInIndex(*this, index, value, role);
+            return ListTemplateFunctions<rowSize - 1, T, Types...>::setInIndex(*this, index, value, role);
         }
 
         bool insertRows(int row, int count, const QModelIndex &parent = {})
         {
-            if (count == 0)
-                return true;
-
-            if (row < 0 ||
-                row > _rows.size())
-                return false;
-
-            beginInsertRows(parent, row, row + count - 1);
-
-            auto rowIt = _rows.begin() + row;
-            for (int i = 0; i < count; ++i)
-                _rows.emplace(rowIt);
-
-            endInsertRows();
-
-            return true;
+            return InsertRows<
+                TypesAreDefaultConstructible<T, Types...>::value,
+                T,
+                Types...>::func(*this, row, count, parent);
         }
 
         bool removeRows(int row, int count, const QModelIndex &parent = {})
@@ -225,16 +233,19 @@ namespace QtMVT
 
         template <int I, typename... ListTypes>
         friend class ListTemplateFunctions;
+
+        template <bool B, typename... ListTypes>
+        friend class InsertRows;
     };
 
     template <int I, typename... Types>
     class ListTemplateFunctions
     {
     public:
-        QVariant getFromIndex(const List<Types...> &list, const QModelIndex &i, const int &role)
+        static QVariant getFromIndex(const List<Types...> &list, const QModelIndex &i, const int &role)
         {
             if (i.column() != I)
-                return ListTemplateFunctions<I - 1, Types...>{}.getFromIndex(list, i, role);
+                return ListTemplateFunctions<I - 1, Types...>::getFromIndex(list, i, role);
 
             auto curRoles = std::get<I>(list._roleFunctions).roles;
             auto roleFunction = curRoles.find(role);
@@ -244,18 +255,18 @@ namespace QtMVT
             return roleFunction->second(std::get<I>(list._rows[i.row()]));
         }
 
-        bool columnIsEditable(const List<Types...> &list, const int &column)
+        static bool columnIsEditable(const List<Types...> &list, const int &column)
         {
             if (column != I)
-                return ListTemplateFunctions<I - 1, Types...>{}.columnIsEditable(list, column);
+                return ListTemplateFunctions<I - 1, Types...>::columnIsEditable(list, column);
 
             return !std::get<I>(list._roleFunctions).editRoles.empty();
         }
 
-        bool setInIndex(List<Types...> &list, const QModelIndex &i, const QVariant &data, const int &role)
+        static bool setInIndex(List<Types...> &list, const QModelIndex &i, const QVariant &data, const int &role)
         {
             if (i.column() != I)
-                return ListTemplateFunctions<I - 1, Types...>{}.setInIndex(list, i, data, role);
+                return ListTemplateFunctions<I - 1, Types...>::setInIndex(list, i, data, role);
 
             auto curRoles = std::get<I>(list._roleFunctions).editRoles;
             auto roleFunction = curRoles.find(role);
@@ -270,19 +281,57 @@ namespace QtMVT
     class ListTemplateFunctions<-1, Types...>
     {
     public:
-        QVariant getFromIndex(const List<Types...> &, const QModelIndex &, const int &)
+        static QVariant getFromIndex(const List<Types...> &, const QModelIndex &, const int &)
         {
             return {};
         }
 
-        bool columnIsEditable(const List<Types...> &, const int &)
+        static bool columnIsEditable(const List<Types...> &, const int &)
         {
             return false;
         }
 
-        bool setInIndex(List<Types...> &, const QModelIndex &, const QVariant &, const int &)
+        static bool setInIndex(List<Types...> &, const QModelIndex &, const QVariant &, const int &)
         {
             return false;
+        }
+    };
+
+    template <bool DefaultConstructible, typename... Types>
+    class InsertRows;
+
+    template <typename... Types>
+    class InsertRows<true, Types...>
+    {
+    public:
+        static bool func(List<Types...> &l, int row, int count, const QModelIndex &parent)
+        {
+            if (count == 0)
+                return true;
+
+            if (row < 0 ||
+                row > l._rows.size())
+                return false;
+
+            l.beginInsertRows(parent, row, row + count - 1);
+
+            auto rowIt = l._rows.begin() + row;
+            for (int i = 0; i < count; ++i)
+                l._rows.emplace(rowIt);
+
+            l.endInsertRows();
+
+            return true;
+        }
+    };
+
+    template <typename... Types>
+    class InsertRows<false, Types...>
+    {
+    public:
+        static bool func(List<Types...> &l, int row, int count, const QModelIndex &parent)
+        {
+            return static_cast<QAbstractTableModel &>(l).insertRows(row, count, parent);
         }
     };
 

@@ -16,6 +16,21 @@ struct Person
     int age;
 };
 
+class PersonNoDefault
+{
+    QString _name;
+    int _age;
+
+public:
+    PersonNoDefault(QString &&name, int age) :
+        _name{name},
+        _age{age}
+    {}
+
+    QString name() const { return _name; }
+    int age() const { return _age; }
+};
+
 int main(int argc, char **argv)
 {
     QApplication a { argc, argv };
@@ -82,6 +97,16 @@ int main(int argc, char **argv)
         }
     };
 
+    Model::List<PersonNoDefault> noDefaultPersonList {
+        {
+            make_tuple(PersonNoDefault{"Romário", 24}),
+            make_tuple(PersonNoDefault{"Marcela", 25}),
+            make_tuple(PersonNoDefault{"Milton", 28})
+        },
+
+        [](const PersonNoDefault &p) { return p.name() + " (" + QString::number(p.age()) + ")"; }
+    };
+
     Ui::ModelListExamples ui;
     QWidget w;
     ui.setupUi(&w);
@@ -91,6 +116,7 @@ int main(int argc, char **argv)
     ui.editable->setModel(&editablePersonList);
     ui.insertable->setModel(&insertablePersonList);
     ui.removable->setModel(&removablePersonList);
+    ui.noDefCtor->setModel(&noDefaultPersonList);
 
     QObject::connect(ui.insertableInsert, &QPushButton::clicked, [&ui, &insertablePersonList]()
     {
