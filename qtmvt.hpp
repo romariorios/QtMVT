@@ -73,8 +73,8 @@ namespace QtMVT
 
         List(
             std::initializer_list<std::tuple<T, Types...>> l,
-            const RoleFunctions<T> &tRoles,
-            RoleFunctions<Types>... otherRoles,
+            RoleFunctions<T> &&tRoles,
+            RoleFunctions<Types> &&... otherRoles,
             QObject *parent = nullptr)
         :
             QAbstractTableModel{parent},
