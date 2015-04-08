@@ -135,6 +135,15 @@ int main(int argc, char **argv)
         removablePersonList.removeRow(0);
     });
 
+    QObject::connect(ui.noDefCtorInsert, &QPushButton::clicked, [&ui, &noDefaultPersonList]()
+    {
+        noDefaultPersonList.append(
+            make_tuple(
+                PersonNoDefault{
+                    ui.noDefCtorName->text(),
+                    ui.noDefCtorAge->value()}));
+    });
+
     w.show();
 
     a.exec();

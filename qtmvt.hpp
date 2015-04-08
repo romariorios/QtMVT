@@ -217,6 +217,41 @@ namespace QtMVT
             return true;
         }
 
+        bool insert(int row, std::initializer_list<_RowType> &&rows)
+        {
+            if (rows.size() == 0)
+                return true;
+
+            if (
+                row < 0 ||
+                row > _rows.size())
+                return false;
+
+            beginInsertRows({}, row, row + rows.size() - 1);
+
+            auto rowIt = _rows.begin() + row;
+            _rows.insert(rowIt, rows);
+
+            endInsertRows();
+
+            return true;
+        }
+
+        bool insert(int row, _RowType &&rowElements)
+        {
+            return insert(row, {std::move(rowElements)});
+        }
+
+        bool append(std::initializer_list<_RowType> &&rows)
+        {
+            return insert(_rows.size(), std::move(rows));
+        }
+
+        bool append(_RowType &&rowElements)
+        {
+            return append({std::move(rowElements)});
+        }
+
     private:
         inline bool _indexIsInvalid(const QModelIndex &index) const
         {
