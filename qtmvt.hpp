@@ -145,7 +145,7 @@ namespace QtMVT
         {}
 
         List(std::initializer_list<std::tuple<T, Types...>> &&l, QObject *parent = nullptr) :
-            List{std::move(l), RoleFunctions<T>{}, RoleFunctions<Types>{}..., parent}
+            List{std::move(l), RoleFunctions<T>(), RoleFunctions<Types>()..., parent}
         {}
 
         List(const List<T, Types...> &other, QObject *parent = nullptr) :
