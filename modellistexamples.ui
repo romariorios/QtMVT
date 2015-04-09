@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>657</width>
-    <height>450</height>
+    <width>802</width>
+    <height>483</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -120,6 +120,33 @@
           <widget class="QPushButton" name="noDefCtorAddRole">
            <property name="text">
             <string>Add tooltip role</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_7">
+      <attribute name="title">
+       <string>Model as prototype</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_8">
+       <item>
+        <widget class="QTableView" name="proto"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLineEdit" name="protoName"/>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="protoAge"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="protoInsert">
+           <property name="text">
+            <string>Insert</string>
            </property>
           </widget>
          </item>

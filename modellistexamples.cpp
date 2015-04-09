@@ -107,6 +107,8 @@ int main(int argc, char **argv)
         [](const PersonNoDefault &p) { return p.name() + " (" + QString::number(p.age()) + ")"; }
     };
 
+    auto fromPrototype = noDefaultPersonList.createNew();
+
     Ui::ModelListExamples ui;
     QWidget w;
     ui.setupUi(&w);
@@ -117,6 +119,7 @@ int main(int argc, char **argv)
     ui.insertable->setModel(&insertablePersonList);
     ui.removable->setModel(&removablePersonList);
     ui.noDefCtor->setModel(&noDefaultPersonList);
+    ui.proto->setModel(&fromPrototype);
 
     QObject::connect(ui.insertableInsert, &QPushButton::clicked, [&ui, &insertablePersonList]()
     {
@@ -154,6 +157,15 @@ int main(int argc, char **argv)
                     "This person is called " + p.name() + " and is " + QString::number(p.age()) +
                     " years old.";
             });
+    });
+
+    QObject::connect(ui.protoInsert, &QPushButton::clicked, [&ui, &fromPrototype]()
+    {
+        fromPrototype.append(
+            make_tuple(
+                PersonNoDefault{
+                    ui.protoName->text(),
+                    ui.protoAge->value()}));
     });
 
     w.show();

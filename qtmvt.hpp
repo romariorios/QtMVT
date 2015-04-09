@@ -148,11 +148,29 @@ namespace QtMVT
             List{std::move(l), RoleFunctions<T>(), RoleFunctions<Types>()..., parent}
         {}
 
+        List(QObject *parent = nullptr) :
+            List{{}, parent}
+        {}
+
         List(const List<T, Types...> &other, QObject *parent = nullptr) :
             QAbstractTableModel{parent},
             _rows{other._rows},
             _roleFunctions{other._roleFunctions}
         {}
+
+        List(List<T, Types...> &&) = default;
+
+        List<T, Types...> createNew(
+            std::initializer_list<_RowType> &&l = {},
+            QObject *parent = nullptr)
+        {
+            return {std::move(l), _roleFunctions, parent};
+        }
+
+        List<T, Types...> createNew(QObject *parent)
+        {
+            return createNew({}, parent);
+        }
 
         int rowCount(const QModelIndex & = {}) const
         {
@@ -322,6 +340,16 @@ namespace QtMVT
 
         std::vector<_RowType> _rows;
         std::tuple<RoleFunctions<T>, RoleFunctions<Types>...> _roleFunctions;
+
+        List(
+            std::initializer_list<_RowType> &&l,
+            const decltype(_roleFunctions) &roleFunctions,
+            QObject *parent)
+        :
+            QAbstractTableModel{parent},
+            _rows{l},
+            _roleFunctions{roleFunctions}
+        {}
 
         template <int I, typename... ListTypes>
         friend class ListTemplateFunctions;
