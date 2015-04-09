@@ -36,6 +36,7 @@ int main(int argc, char **argv)
     QApplication a { argc, argv };
 
     Model::List<const char *, int, const char *> simpleList {
+        {"Name", "Age", "Profession"},
         {
             make_tuple("Romário", 24, "Programador"),
             make_tuple("Mike", 30, "Plumber"),
@@ -45,6 +46,7 @@ int main(int argc, char **argv)
     };
 
     Model::List<Person, QString> personList {
+        {"Person", "Profession"},
         {make_tuple(Person{"Romário", 24}, "Programador")},
 
         [](const Person &p) { return p.name + " (" + QString::number(p.age) + ")"; },
@@ -52,6 +54,7 @@ int main(int argc, char **argv)
     };
 
     Model::List<Person, QString> editablePersonList {
+        {"Person", "Profession"},
         {make_tuple(Person{"Romário", 24}, "Programador")},
         {
             {
@@ -70,6 +73,7 @@ int main(int argc, char **argv)
     };
 
     Model::List<QString, QString> insertablePersonList {
+        {"Name", "Profession"},
         {},
         [](const QString &s) { return "Name: " + s; },
         [](QString &s, const QVariant &v) { s = v.toString(); return true; },
@@ -79,6 +83,7 @@ int main(int argc, char **argv)
     };
 
     Model::List<Person> removablePersonList {
+        {"Person"},
         {
             make_tuple(Person{"Romário", 24}),
             make_tuple(Person{"Maria", 19}),
@@ -98,6 +103,7 @@ int main(int argc, char **argv)
     };
 
     Model::List<PersonNoDefault> noDefaultPersonList {
+        {"Person"},
         {
             make_tuple(PersonNoDefault{"Romário", 24}),
             make_tuple(PersonNoDefault{"Marcela", 25}),

@@ -94,17 +94,20 @@ namespace QtMVT
         static const constexpr int rowSize = std::tuple_size<_RowType>::value;
 
         List(
+            std::array<const char *, rowSize> &&headerTitles,
             std::initializer_list<std::tuple<T, Types...>> &&l,
             RoleFunctions<T> &&tRoles,
             RoleFunctions<Types> &&... otherRoles,
             QObject *parent = nullptr)
         :
             QAbstractTableModel{parent},
+            _headerTitles(std::move(headerTitles)),
             _rows{l},
             _roleFunctions{tRoles, otherRoles...}
         {}
 
         List(
+            std::array<const char *, rowSize> &&headerTitles,
             std::initializer_list<std::tuple<T, Types...>> &&l,
             std::function<QVariant(const T &)> &&tDisplayFunction,
             std::function<bool(T &, const QVariant &)> &&tEditFunction,
@@ -113,6 +116,7 @@ namespace QtMVT
             QObject *parent = nullptr)
         :
             List{
+                std::move(headerTitles),
                 std::move(l),
                 {
                     {{Qt::DisplayRole, tDisplayFunction}},
@@ -126,12 +130,14 @@ namespace QtMVT
         {}
 
         List(
+            std::array<const char *, rowSize> &&headerTitles,
             std::initializer_list<std::tuple<T, Types...>> &&l,
             std::function<QVariant(const T &)> &&tDisplayFunction,
             std::function<QVariant(const Types &)> &&... otherDisplayFunctions,
             QObject *parent = nullptr)
         :
             List{
+                std::move(headerTitles),
                 std::move(l),
                 {
                     {{Qt::DisplayRole, tDisplayFunction}},
@@ -144,16 +150,26 @@ namespace QtMVT
                 parent}
         {}
 
-        List(std::initializer_list<std::tuple<T, Types...>> &&l, QObject *parent = nullptr) :
-            List{std::move(l), RoleFunctions<T>(), RoleFunctions<Types>()..., parent}
+        List(
+            std::array<const char *, rowSize> &&headerTitles,
+            std::initializer_list<std::tuple<T, Types...>> &&l,
+            QObject *parent = nullptr)
+        :
+            List{
+                std::move(headerTitles),
+                std::move(l),
+                RoleFunctions<T>(),
+                RoleFunctions<Types>()...,
+                parent}
         {}
 
         List(QObject *parent = nullptr) :
-            List{{}, parent}
+            List{{}, {}, parent}
         {}
 
         List(const List<T, Types...> &other, QObject *parent = nullptr) :
             QAbstractTableModel{parent},
+            _headerTitles(other._headerTitles),
             _rows{other._rows},
             _roleFunctions{other._roleFunctions}
         {}
@@ -164,7 +180,7 @@ namespace QtMVT
             std::initializer_list<_RowType> &&l = {},
             QObject *parent = nullptr)
         {
-            return {std::move(l), _roleFunctions, parent};
+            return {_headerTitles, std::move(l), _roleFunctions, parent};
         }
 
         List<T, Types...> createNew(QObject *parent)
@@ -188,6 +204,18 @@ namespace QtMVT
                 return {};
 
             return ListTemplateFunctions<rowSize - 1, T, Types...>::getFromIndex(*this, index, role);
+        }
+
+        QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const
+        {
+            if (
+                section < 0 ||
+                section >= rowSize ||
+                orientation != Qt::Horizontal ||
+                role != Qt::DisplayRole)
+                return QAbstractTableModel::headerData(section, orientation, role);
+
+            return _headerTitles[section];
         }
 
         Qt::ItemFlags flags(const QModelIndex &index) const
@@ -327,6 +355,11 @@ namespace QtMVT
             endResetModel();
         }
 
+        void setHeaderTitle(int section, const char *title)
+        {
+            _headerTitles[section] = title;
+        }
+
     private:
         inline bool _indexIsInvalid(const QModelIndex &index) const
         {
@@ -338,15 +371,18 @@ namespace QtMVT
                 index .column() >= columnCount();
         }
 
+        std::array<const char *, rowSize> _headerTitles;
         std::vector<_RowType> _rows;
         std::tuple<RoleFunctions<T>, RoleFunctions<Types>...> _roleFunctions;
 
         List(
+            const decltype(_headerTitles) &headerTitles,
             std::initializer_list<_RowType> &&l,
             const decltype(_roleFunctions) &roleFunctions,
             QObject *parent)
         :
             QAbstractTableModel{parent},
+            _headerTitles(std::move(headerTitles)),
             _rows{l},
             _roleFunctions{roleFunctions}
         {}
