@@ -252,6 +252,63 @@ namespace QtMVT
             return append({std::move(rowElements)});
         }
 
+        template <std::size_t Column>
+        void addRoleFunction(
+            int role,
+            std::function<
+                QVariant(
+                    const typename std::tuple_element<
+                        Column, _RowType
+                    >::type &)> &&function)
+        {
+            beginResetModel();
+
+            auto &functions = std::get<Column>(_roleFunctions).roles;
+            functions[role] = function;
+
+            endResetModel();
+        }
+
+        template <std::size_t Column>
+        void addEditRoleFunction(
+            int editRole,
+            std::function<
+                void(
+                    typename std::tuple_element<
+                        Column, _RowType
+                    >::type &,
+                    const QVariant &)> &&function)
+        {
+            beginResetModel();
+
+            auto functions = std::get<Column>(_roleFunctions).editRoles;
+            functions[editRole] = function;
+
+            endResetModel();
+        }
+
+        template <std::size_t Column>
+        void removeRole(int role)
+        {
+            beginResetModel();
+
+            auto functions = std::get<Column>(_roleFunctions).roles;
+            functions.erase(role);
+
+            endResetModel();
+        }
+
+        template <std::size_t Column>
+        void removeEditRole(int role)
+        {
+            beginResetModel();
+
+            auto functions = std::get<Column>(_roleFunctions).editRoles;
+            functions.erase(role);
+
+            endResetModel();
+        }
+
     private:
         inline bool _indexIsInvalid(const QModelIndex &index) const
         {

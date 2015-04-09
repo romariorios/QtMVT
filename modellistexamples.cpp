@@ -144,6 +144,18 @@ int main(int argc, char **argv)
                     ui.noDefCtorAge->value()}));
     });
 
+    QObject::connect(ui.noDefCtorAddRole, &QPushButton::clicked, [&noDefaultPersonList]()
+    {
+        noDefaultPersonList.addRoleFunction<0>(
+            Qt::ToolTipRole,
+            [](const PersonNoDefault &p)
+            {
+                return
+                    "This person is called " + p.name() + " and is " + QString::number(p.age()) +
+                    " years old.";
+            });
+    });
+
     w.show();
 
     a.exec();
