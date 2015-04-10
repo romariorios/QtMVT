@@ -30,12 +30,12 @@
 
 // Qt includes
 #include <QAbstractTableModel>
+#include <QHash>
 
 // STL includes
 #include <array>
 #include <initializer_list>
 #include <functional>
-#include <map>
 #include <utility>
 #include <tuple>
 #include <type_traits>
@@ -80,17 +80,17 @@ namespace QtMVT
         struct RoleFunctions
         {
             RoleFunctions(
-                std::map<int, std::function<QVariant(const RoleType &)>> &&roles = {
+                QHash<int, std::function<QVariant(const RoleType &)>> &&roles = {
                     {Qt::DisplayRole, [](const RoleType &t) { return t; }}
                 },
-                std::map<int, std::function<bool(RoleType &, const QVariant &)>> &&editRoles = {})
+                QHash<int, std::function<bool(RoleType &, const QVariant &)>> &&editRoles = {})
             :
                 roles{roles},
                 editRoles{editRoles}
             {}
 
-            std::map<int, std::function<QVariant(const RoleType &)>> roles;
-            std::map<int, std::function<bool(RoleType &, const QVariant &)>> editRoles;
+            QHash<int, std::function<QVariant(const RoleType &)>> roles;
+            QHash<int, std::function<bool(RoleType &, const QVariant &)>> editRoles;
         };
 
         static const constexpr int rowSize = std::tuple_size<_RowType>::value;
@@ -312,7 +312,7 @@ namespace QtMVT
             beginResetModel();
 
             auto &functions = std::get<Column>(_roleFunctions).roles;
-            functions[role] = function;
+            functions.insert(role, function);
 
             endResetModel();
         }
@@ -321,7 +321,7 @@ namespace QtMVT
         void addEditRoleFunction(
             int editRole,
             std::function<
-                void(
+                bool(
                     typename std::tuple_element<
                         Column, _RowType
                     >::type &,
@@ -329,30 +329,30 @@ namespace QtMVT
         {
             beginResetModel();
 
-            auto functions = std::get<Column>(_roleFunctions).editRoles;
-            functions[editRole] = function;
+            auto &functions = std::get<Column>(_roleFunctions).editRoles;
+            functions.insert(editRole, function);
 
             endResetModel();
         }
 
         template <std::size_t Column>
-        void removeRole(int role)
+        void removeRole(int role = Qt::DisplayRole)
         {
             beginResetModel();
 
-            auto functions = std::get<Column>(_roleFunctions).roles;
-            functions.erase(role);
+            auto &functions = std::get<Column>(_roleFunctions).roles;
+            functions.remove(role);
 
             endResetModel();
         }
 
         template <std::size_t Column>
-        void removeEditRole(int role)
+        void removeEditRole(int role = Qt::EditRole)
         {
             beginResetModel();
 
-            auto functions = std::get<Column>(_roleFunctions).editRoles;
-            functions.erase(role);
+            auto &functions = std::get<Column>(_roleFunctions).editRoles;
+            functions.remove(role);
 
             endResetModel();
         }
@@ -405,12 +405,11 @@ namespace QtMVT
             if (i.column() != I)
                 return ListTemplateFunctions<I - 1, Types...>::getFromIndex(list, i, role);
 
-            auto curRoles = std::get<I>(list._roleFunctions).roles;
-            auto roleFunction = curRoles.find(role);
-            if (roleFunction == curRoles.end())
+            auto &curRoles = std::get<I>(list._roleFunctions).roles;
+            if (!curRoles.contains(role))
                 return {};
 
-            return roleFunction->second(std::get<I>(list._rows[i.row()]));
+            return curRoles[role](std::get<I>(list._rows[i.row()]));
         }
 
         static bool columnIsEditable(const List<Types...> &list, const int &column)
@@ -426,12 +425,11 @@ namespace QtMVT
             if (i.column() != I)
                 return ListTemplateFunctions<I - 1, Types...>::setInIndex(list, i, data, role);
 
-            auto curRoles = std::get<I>(list._roleFunctions).editRoles;
-            auto roleFunction = curRoles.find(role);
-            if (roleFunction == curRoles.end())
+            auto &curRoles = std::get<I>(list._roleFunctions).editRoles;
+            if (!curRoles.contains(role))
                 return false;
 
-            return roleFunction->second(std::get<I>(list._rows[i.row()]), data);
+            return curRoles[role](std::get<I>(list._rows[i.row()]), data);
         }
     };
 
