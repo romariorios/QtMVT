@@ -265,6 +265,12 @@ namespace QtMVT
             return true;
         }
 
+        const std::tuple<T, Types...> &row(int rowIndex) const
+        {
+            Q_ASSERT(rowIndex >= 0 && rowIndex < _rows.size());
+            return _rows[rowIndex];
+        }
+
         bool insert(int row, std::initializer_list<_RowType> &&rows)
         {
             if (rows.size() == 0)
