@@ -324,6 +324,17 @@ namespace QtMVT
         }
 
         template <std::size_t Column>
+        void addRoleFunction(
+            std::function<
+                QVariant(
+                    const typename std::tuple_element<
+                        Column, _RowType
+                    >::type &)> &&function)
+        {
+            addRoleFunction<Column>(Qt::DisplayRole, std::move(function));
+        }
+
+        template <std::size_t Column>
         void addEditRoleFunction(
             int editRole,
             std::function<
@@ -339,6 +350,18 @@ namespace QtMVT
             functions.insert(editRole, function);
 
             endResetModel();
+        }
+
+        template <std::size_t Column>
+        void addEditRoleFunction(
+            std::function<
+                bool(
+                    typename std::tuple_element<
+                        Column, _RowType
+                    >::type &,
+                    const QVariant &)> &&function)
+        {
+            addEditRoleFunction<Column>(Qt::EditRole, std::move(function));
         }
 
         template <std::size_t Column>
