@@ -40,6 +40,8 @@
 #include <tuple>
 #include <type_traits>
 
+using std::make_tuple;
+
 namespace QtMVT
 {
     namespace Model
@@ -152,7 +154,7 @@ namespace QtMVT
 
         List(
             std::array<const char *, rowSize> &&headerTitles,
-            std::initializer_list<std::tuple<T, Types...>> &&l,
+            std::initializer_list<std::tuple<T, Types...>> &&l = {},
             QObject *parent = nullptr)
         :
             List{
