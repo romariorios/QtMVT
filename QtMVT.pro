@@ -11,10 +11,10 @@ TARGET = modellistexamples
 TEMPLATE = app
 
 SOURCES += \
-    modellistexamples.cpp
+    examplesuite.cpp
 
 HEADERS += \
     qtmvt.hpp
 
 FORMS += \
-    modellistexamples.ui
+    examplesuite.ui

@@ -5,7 +5,7 @@
 #include <QVBoxLayout>
 #include <QApplication>
 
-#include "ui_modellistexamples.h"
+#include "ui_examplesuite.h"
 
 using namespace QtMVT;
 using namespace std;
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
     auto fromPrototype = noDefaultPersonList.createNew();
 
-    Ui::ModelListExamples ui;
+    Ui::ExampleSuite ui;
     QWidget w;
     ui.setupUi(&w);
 

@@ -69,7 +69,7 @@ namespace QtMVT
     template <bool B, typename... Types>
     class ListInsertRows;
 
-    // A list with a fixed size of columns
+    // A list with a fixed number of columns
     template <typename T, typename... Types>
     class List : public QAbstractTableModel
     {
