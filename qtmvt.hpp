@@ -44,7 +44,8 @@ using std::make_tuple;
 
 namespace QtMVT
 {
-    namespace Model
+
+    namespace Util
     {
 
     template <typename T, typename... Types>
@@ -63,19 +64,20 @@ namespace QtMVT
         static const bool value = std::is_default_constructible<T>::value;
     };
 
+    }
+
+    namespace Model
+    {
+
     template <int I, typename... Types>
     class ListDataAccess;
 
     template <bool B, typename... Types>
     class ListInsertRows;
 
-    // A list with a fixed number of columns
-    template <typename T, typename... Types>
-    class List : public QAbstractTableModel
-    {
-        typedef std::tuple<T, Types...> _RowType;
+        namespace Util
+        {
 
-    public:
         template <typename RoleType>
         struct RoleFunctions
         {
@@ -93,13 +95,22 @@ namespace QtMVT
             QHash<int, std::function<bool(RoleType &, const QVariant &)>> editRoles;
         };
 
+        }
+
+    // A list with a fixed number of columns
+    template <typename T, typename... Types>
+    class List : public QAbstractTableModel
+    {
+        typedef std::tuple<T, Types...> _RowType;
+
+    public:
         static const constexpr int rowSize = std::tuple_size<_RowType>::value;
 
         List(
             std::array<const char *, rowSize> &&headerTitles,
             std::initializer_list<std::tuple<T, Types...>> &&l,
-            RoleFunctions<T> &&tRoles,
-            RoleFunctions<Types> &&... otherRoles,
+            Util::RoleFunctions<T> &&tRoles,
+            Util::RoleFunctions<Types> &&... otherRoles,
             QObject *parent = nullptr)
         :
             QAbstractTableModel{parent},
@@ -160,8 +171,8 @@ namespace QtMVT
             List{
                 std::move(headerTitles),
                 std::move(l),
-                RoleFunctions<T>(),
-                RoleFunctions<Types>()...,
+                Util::RoleFunctions<T>(),
+                Util::RoleFunctions<Types>()...,
                 parent}
         {}
 
@@ -240,7 +251,7 @@ namespace QtMVT
         bool insertRows(int row, int count, const QModelIndex &parent = {})
         {
             return ListInsertRows<
-                TypesAreDefaultConstructible<T, Types...>::value,
+                QtMVT::Util::TypesAreDefaultConstructible<T, Types...>::value,
                 T,
                 Types...>::func(*this, row, count, parent);
         }
@@ -404,7 +415,7 @@ namespace QtMVT
 
         std::array<const char *, rowSize> _headerTitles;
         std::vector<_RowType> _rows;
-        std::tuple<RoleFunctions<T>, RoleFunctions<Types>...> _roleFunctions;
+        std::tuple<Util::RoleFunctions<T>, Util::RoleFunctions<Types>...> _roleFunctions;
 
         List(
             const decltype(_headerTitles) &headerTitles,
