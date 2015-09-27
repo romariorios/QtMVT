@@ -535,6 +535,51 @@ namespace QtMVT
         }
     };
 
+    template <typename T>
+    class Table : public QAbstractTableModel
+    {
+    public:
+        Table(const std::initializer_list<std::vector<T>> &l)
+        :
+            _table{l},
+            _width{0}
+        {
+            for(auto &&r : _table)
+                if (r.size() > _width)
+                    _width = r.size();
+        }
+
+        inline int rowCount(const QModelIndex &) const
+        {
+            return _table.size();
+        }
+
+        inline int columnCount(const QModelIndex &) const
+        {
+            return _width;
+        }
+
+        QVariant data(const QModelIndex &index, int role) const
+        {
+            if (role != Qt::DisplayRole ||
+                !index.isValid() ||
+                index.row() >= _table.size())
+                return {};
+
+            auto &row = _table[index.row()];
+            const auto columnInd = index.column();
+
+            if (columnInd >= row.size())
+                return {};
+
+            return row[index.column()];
+        }
+
+    private:
+        std::vector<std::vector<T>> _table;
+        size_t _width;
+    };
+
     }
 
 }

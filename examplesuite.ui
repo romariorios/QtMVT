@@ -168,6 +168,27 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_9">
+      <attribute name="title">
+       <string>Model::Table examples</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_10">
+       <item>
+        <widget class="QTabWidget" name="tabWidget_3">
+         <widget class="QWidget" name="tab_11">
+          <attribute name="title">
+           <string>Simple table</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <widget class="QTableView" name="simpleTable"/>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>

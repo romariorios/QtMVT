@@ -176,5 +176,8 @@ int main(int argc, char **argv)
 
     w.show();
 
+    Model::Table<int> simpleTable{{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}}};
+    ui.simpleTable->setModel(&simpleTable);
+
     return a.exec();
 }
