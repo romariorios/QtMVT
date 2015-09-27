@@ -176,5 +176,5 @@ int main(int argc, char **argv)
 
     w.show();
 
-    a.exec();
+    return a.exec();
 }

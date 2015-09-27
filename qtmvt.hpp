@@ -262,7 +262,7 @@ namespace QtMVT
                 return true;
 
             if (row < 0 ||
-                row + count > _rows.size())
+                static_cast<size_t>(row + count) > _rows.size())
                 return false;
 
             beginRemoveRows(parent, row, row + count - 1);
@@ -289,7 +289,7 @@ namespace QtMVT
 
             if (
                 row < 0 ||
-                row > _rows.size())
+                static_cast<size_t>(row) > _rows.size())
                 return false;
 
             beginInsertRows({}, row, row + rows.size() - 1);
@@ -506,7 +506,7 @@ namespace QtMVT
                 return true;
 
             if (row < 0 ||
-                row > l._rows.size())
+                static_cast<size_t>(row) > l._rows.size())
                 return false;
 
             l.beginInsertRows(parent, row, row + count - 1);
