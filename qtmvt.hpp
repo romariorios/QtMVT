@@ -540,13 +540,17 @@ namespace QtMVT
     {
     public:
         Table(const std::initializer_list<std::vector<T>> &l)
-        :
-            _table{l},
-            _width{0}
         {
-            for(auto &&r : _table)
+            for(auto &&r : l) {
                 if (r.size() > _width)
                     _width = r.size();
+
+                _table.emplace_back();
+                auto &tableRow = *(_table.end() - 1);
+                int i = 0;
+                for (auto &&el : r)
+                    tableRow[i++] = el;
+            }
         }
 
         inline int rowCount(const QModelIndex &) const
@@ -563,7 +567,7 @@ namespace QtMVT
         {
             if (role != Qt::DisplayRole ||
                 !index.isValid() ||
-                index.row() >= _table.size())
+                static_cast<size_t>(index.row()) >= _table.size())
                 return {};
 
             auto &row = _table[index.row()];
@@ -576,8 +580,8 @@ namespace QtMVT
         }
 
     private:
-        std::vector<std::vector<T>> _table;
-        size_t _width;
+        std::vector<QHash<int, T>> _table;
+        size_t _width = 0;
     };
 
     }
