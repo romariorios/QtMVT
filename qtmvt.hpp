@@ -440,14 +440,18 @@ namespace QtMVT
     class ListDataAccess
     {
     public:
-        static QVariant getFromIndex(const List<Types...> &list, const QModelIndex &i, const int &role)
+        static QVariant getFromIndex(const List<Types...> &list, const QModelIndex &i, int role)
         {
             if (i.column() != I)
                 return ListDataAccess<I - 1, Types...>::getFromIndex(list, i, role);
 
             auto &curRoles = std::get<I>(list._roleFunctions).roles;
-            if (!curRoles.contains(role))
-                return {};
+            if (!curRoles.contains(role)) {
+                if (role != Qt::EditRole)
+                    return {};
+
+                role = Qt::DisplayRole;
+            }
 
             return curRoles[role](std::get<I>(list._rows[i.row()]));
         }
@@ -477,7 +481,7 @@ namespace QtMVT
     class ListDataAccess<-1, Types...>
     {
     public:
-        static QVariant getFromIndex(const List<Types...> &, const QModelIndex &, const int &)
+        static QVariant getFromIndex(const List<Types...> &, const QModelIndex &, int)
         {
             return {};
         }
