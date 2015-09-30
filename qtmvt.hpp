@@ -91,6 +91,31 @@ namespace QtMVT
                 editRoles{editRoles}
             {}
 
+            QVariant data(int role, const RoleType &t) const
+            {
+                if (!roles.contains(role)) {
+                    if (role != Qt::EditRole)
+                        return {};
+
+                    role = Qt::DisplayRole;
+                }
+
+                return roles[role](t);
+            }
+
+            bool isEditable() const
+            {
+                return editRoles.empty();
+            }
+
+            bool setData(int role, RoleType &t, const QVariant &value)
+            {
+                if (!editRoles.contains(role))
+                    return false;
+
+                return editRoles[role](t, value);
+            }
+
             QHash<int, std::function<QVariant(const RoleType &)>> roles;
             QHash<int, std::function<bool(RoleType &, const QVariant &)>> editRoles;
         };
@@ -445,15 +470,9 @@ namespace QtMVT
             if (i.column() != I)
                 return ListDataAccess<I - 1, Types...>::getFromIndex(list, i, role);
 
-            auto &curRoles = std::get<I>(list._roleFunctions).roles;
-            if (!curRoles.contains(role)) {
-                if (role != Qt::EditRole)
-                    return {};
-
-                role = Qt::DisplayRole;
-            }
-
-            return curRoles[role](std::get<I>(list._rows[i.row()]));
+            return std::get<I>(list._roleFunctions).data(
+                role,
+                std::get<I>(list._rows[i.row()]));
         }
 
         static bool columnIsEditable(const List<Types...> &list, const int &column)
@@ -461,7 +480,7 @@ namespace QtMVT
             if (column != I)
                 return ListDataAccess<I - 1, Types...>::columnIsEditable(list, column);
 
-            return !std::get<I>(list._roleFunctions).editRoles.empty();
+            return !std::get<I>(list._roleFunctions).isEditable();
         }
 
         static bool setInIndex(List<Types...> &list, const QModelIndex &i, const QVariant &data, const int &role)
@@ -469,11 +488,10 @@ namespace QtMVT
             if (i.column() != I)
                 return ListDataAccess<I - 1, Types...>::setInIndex(list, i, data, role);
 
-            auto &curRoles = std::get<I>(list._roleFunctions).editRoles;
-            if (!curRoles.contains(role))
-                return false;
-
-            return curRoles[role](std::get<I>(list._rows[i.row()]), data);
+            return std::get<I>(list._roleFunctions).setData(
+                role,
+                std::get<I>(list._rows[i.row()]),
+                data);
         }
     };
 
