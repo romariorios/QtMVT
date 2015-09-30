@@ -176,7 +176,12 @@ int main(int argc, char **argv)
 
     w.show();
 
-    Model::Table<int> simpleTable{{{1, 2, 3}, {2, 3}, {3, 4, 5}}};
+    Model::Table<int> simpleTable{
+        {{1, 2, 3}, {2, 3}, {3, 4, 5}},
+        {{
+            {Qt::DisplayRole, [](const int &i) { return i; }},
+            {Qt::ToolTipRole, [](const int &i) { return QString("Number: %1").arg(i); }}
+        }}};
     ui.simpleTable->setModel(&simpleTable);
 
     return a.exec();

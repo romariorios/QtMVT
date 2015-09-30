@@ -557,7 +557,13 @@ namespace QtMVT
     class Table : public QAbstractTableModel
     {
     public:
-        Table(const std::initializer_list<std::vector<T>> &l)
+        Table(
+            const std::initializer_list<std::vector<T>> &l,
+            Util::RoleFunctions<T> &&roleFunctions,
+            QObject *parent = nullptr)
+        :
+            QAbstractTableModel{parent},
+            _roleFunctions{roleFunctions}
         {
             for(auto &&r : l) {
                 if (r.size() > _width)
@@ -583,9 +589,7 @@ namespace QtMVT
 
         QVariant data(const QModelIndex &index, int role) const
         {
-            if (role != Qt::DisplayRole ||
-                !index.isValid() ||
-                static_cast<size_t>(index.row()) >= _table.size())
+            if (!indexIsValid(index))
                 return {};
 
             auto &row = _table[index.row()];
@@ -594,12 +598,21 @@ namespace QtMVT
             if (columnInd >= row.size())
                 return {};
 
-            return row[index.column()];
+            return _roleFunctions.data(role, row[index.column()]);
         }
 
     private:
+        bool indexIsValid(const QModelIndex &index) const
+        {
+            return
+                index.isValid() ||
+                static_cast<size_t>(index.row()) < _table.size() ||
+                static_cast<size_t>(index.column()) < _width;
+        }
+
         std::vector<QHash<int, T>> _table;
         size_t _width = 0;
+        Util::RoleFunctions<T> _roleFunctions;
     };
 
     }
