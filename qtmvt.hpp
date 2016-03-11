@@ -105,7 +105,7 @@ namespace QtMVT
 
             bool isEditable() const
             {
-                return editRoles.empty();
+                return !editRoles.empty();
             }
 
             bool setData(int role, RoleType &t, const QVariant &value)
@@ -480,7 +480,7 @@ namespace QtMVT
             if (column != I)
                 return ListDataAccess<I - 1, Types...>::columnIsEditable(list, column);
 
-            return !std::get<I>(list._roleFunctions).isEditable();
+            return std::get<I>(list._roleFunctions).isEditable();
         }
 
         static bool setInIndex(List<Types...> &list, const QModelIndex &i, const QVariant &data, const int &role)
