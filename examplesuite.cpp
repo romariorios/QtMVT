@@ -75,10 +75,11 @@ int main(int argc, char **argv)
     Model::List<QString, QString> insertablePersonList {
         {"Name", "Profession"},
         {},
-        [](const QString &s) { return "Name: " + s; },
-        [](QString &s, const QVariant &v) { s = v.toString(); return true; },
 
+        [](const QString &s) { return "Name: " + s; },
         [](const QString &s) { return "Profession: " + s; },
+
+        [](QString &s, const QVariant &v) { s = v.toString(); return true; },
         [](QString &s, const QVariant &v) { s = v.toString(); return true; }
     };
 
